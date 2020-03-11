@@ -13,7 +13,11 @@ const endpoints = {
     "1": "/cardtokens"
   },
   paymentsList: "/payments",
-  makePayment: "/payments"
+  makePayment: "/payments",
+  paymentRefund: {
+    "0": "/payments",
+    "1": "/refunds",
+  }
 }
 
 module.exports = {
@@ -86,8 +90,24 @@ module.exports = {
           reject(err)
         })
       })
-    }
-    // Make split payment with a single vendor
+    } 
+    /**
+    * Make split payment with a single vendor
+    * @param {object} capturePayment - The payment object
+    * @param {string} capturePayment.siteTransactionId - Unique Id by the site.
+    * @param {string} capturePayment.cardToken - Customer card token.
+    * @param {string} capturePayment.userId - Customer Id.
+    * @param {string} capturePayment.email - Customer email.
+    * @param {number} capturePayment.paymentMethodId - Don't know.
+    * @param {string} capturePayment.bin - First 6 digit of the card.
+    * @param {number} capturePayment.amount - Billable amount, (Eg. 20.30).
+    * @param {string} capturePayment.vendorId - Vendor site id.
+    * @param {number} capturePayment.vendorAmount - Vendor's amount, (Eg. 20.30).
+    * @param {string} [capturePayment.currency=ARS] - Currency supported ["ARS"].
+    * @param {number} [capturePayment.installments=1] - Number of installments (default 1).
+    * @param {string} [capturePayment.description=null] - Description of the transaction.
+    * @return {Promise}
+    */
     this.singleSplitPayment = (capturePayment) => {
       return new Promise((resolve, reject) => {
         const {
@@ -302,9 +322,28 @@ module.exports = {
         })
       })
     }
-    // Payment refund
-    this.paymentRefund = (refundPayment) => {
-      
+    /**
+    * Payment refund
+    * @param {string} paymentId - Payment id / transaction id
+    * @param {number} [amount] - In case of partial refund only and should not be greater than the actual amount
+    * @return {Promise}
+    */
+    this.paymentRefund = (paymentId, amount = null) => {
+      return new Promise((resolve, reject) => {
+        if (!(paymentId && typeof paymentId === "string")) reject(new Error("Invalid paymentId"))
+        const payload = {}
+        if (amount && typeof amount === "number" && amount > 0) payload.amount = amount
+        axios({
+          method: "post",
+          url: `${endpoints["paymentRefund"]["0"]}/${paymentId}${endpoints["paymentRefund"]["1"]}`,
+          headers,
+          data: payload
+        }).then((response) => {
+          resolve(response.data)
+        }).catch((err) => {
+          reject(err)
+        })
+      })
     }
   }
 }

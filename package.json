@@ -1,5 +1,5 @@
 {
-  "name": "decidir-functions",
+  "name": "decidir-wrapper",
   "version": "1.0.0",
   "description": "API wrapper for DECIDIR payment gateway",
   "main": "index.js",
